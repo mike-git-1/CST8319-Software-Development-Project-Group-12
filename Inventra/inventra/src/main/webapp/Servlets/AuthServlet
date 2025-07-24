@@ -1,0 +1,81 @@
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.sql.Connection;
+
+@WebServlet("/auth")
+public class AuthServlet extends HttpServlet {
+
+    private Connection conn;
+
+    @Override
+    public void init() {
+        try {
+            conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Registration handler
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String action = req.getParameter("action");
+
+        try {
+            if ("register".equals(action)) {
+                handleRegister(req, resp);
+            } else if ("login".equals(action)) {
+                handleLogin(req, resp);
+            } else {
+                resp.sendError(400, "Invalid action");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.sendError(500, "Server error");
+        }
+    }
+
+    private void handleRegister(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        int companyId = Integer.parseInt(req.getParameter("companyId"));
+        String role = "staff";  // default role
+
+        AuthService authService = new AuthService();
+        String salt = authService.generateSalt();
+        String hashedPassword = authService.hashPassword(password, salt);
+
+        User user = new User();
+        user.setEmail(email);
+        user.setSalt(salt);
+        user.setHashedPassword(hashedPassword);
+        user.setRole(role);
+        user.setCompanyId(companyId);
+
+        UserDAO userDAO = new UserDAO(conn);
+        userDAO.createUser(user);
+
+        resp.sendRedirect("login.jsp?msg=registered");
+    }
+
+    private void handleLogin(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+
+        UserDAO userDAO = new UserDAO(conn);
+        User user = userDAO.findByEmail(email);
+
+        if (user != null) {
+            AuthService authService = new AuthService();
+            if (authService.validateLogin(password, user.getHashedPassword(), user.getSalt())) {
+                HttpSession session = req.getSession();
+                session.setAttribute("user", user);
+                resp.sendRedirect("dashboard.jsp");
+                return;
+            }
+        }
+
+        resp.sendRedirect("login.jsp?error=invalid");
+    }
+}

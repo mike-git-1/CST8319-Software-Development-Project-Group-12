@@ -1,0 +1,89 @@
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.sql.Connection;
+import java.util.List;
+
+@WebServlet("/inventory")
+public class InventoryServlet extends HttpServlet {
+
+    private Connection conn;
+
+    @Override
+    public void init() {
+        try {
+            conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Handle GET (list products)
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect("login.jsp");
+            return;
+        }
+
+        User user = (User) session.getAttribute("user");
+        try {
+            ProductDAO productDAO = new ProductDAO(conn);
+            List<Product> products = productDAO.getProductsByCompany(user.getCompanyId());
+            req.setAttribute("products", products);
+            req.getRequestDispatcher("inventory.jsp").forward(req, resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.sendError(500);
+        }
+    }
+
+    // Handle POST (add/update/delete)
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect("login.jsp");
+            return;
+        }
+
+        String action = req.getParameter("action");
+        User user = (User) session.getAttribute("user");
+
+        try {
+            ProductDAO productDAO = new ProductDAO(conn);
+
+            if ("add".equals(action)) {
+                Product p = new Product();
+                p.setName(req.getParameter("name"));
+                p.setDescription(req.getParameter("description"));
+                p.setCompanyId(user.getCompanyId());
+                p.setStockCount(Integer.parseInt(req.getParameter("stockCount")));
+                p.setLocation(req.getParameter("location"));
+
+                productDAO.addProduct(p);
+            } else if ("update".equals(action)) {
+                Product p = new Product();
+                p.setId(Integer.parseInt(req.getParameter("id")));
+                p.setName(req.getParameter("name"));
+                p.setDescription(req.getParameter("description"));
+                p.setStockCount(Integer.parseInt(req.getParameter("stockCount")));
+                p.setLocation(req.getParameter("location"));
+
+                productDAO.updateProduct(p);
+            } else if ("delete".equals(action)) {
+                int id = Integer.parseInt(req.getParameter("id"));
+                productDAO.deleteProduct(id);
+            } else {
+                resp.sendError(400, "Invalid action");
+                return;
+            }
+
+            resp.sendRedirect("inventory");
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.sendError(500, "Server error");
+        }
+    }
+}

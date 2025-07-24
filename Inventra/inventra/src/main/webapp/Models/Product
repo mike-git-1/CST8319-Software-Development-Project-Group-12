@@ -1,0 +1,10 @@
+public class Product {
+    private int id;
+    private String name;
+    private String description;
+    private int companyId;
+    private int stockCount;
+    private String location;
+
+    // Constructors, getters, setters
+}

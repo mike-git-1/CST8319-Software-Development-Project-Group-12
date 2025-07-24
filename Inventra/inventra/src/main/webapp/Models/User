@@ -1,0 +1,10 @@
+public class User {
+    private int id;
+    private String email;
+    private String hashedPassword;
+    private String salt;
+    private String role;       
+    private int companyId;
+
+    // Constructors, getters, setters
+}
