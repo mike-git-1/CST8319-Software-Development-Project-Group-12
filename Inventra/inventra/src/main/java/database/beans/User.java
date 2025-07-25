@@ -26,43 +26,6 @@ public class User {
     	this.verification_token = builder.verification_token;
     	this.verified = builder.verified;
     }
-    
-    // Constructor with all fields
-    public User(int id, String first_name, String last_name, String email, String password,
-            Date date_created, Date date_modified, String verification_token, boolean verified) {
-        this.id = id;
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.email = email;
-        this.password = password;
-        this.date_created = date_created;
-        this.date_modified = date_modified;
-        this.verification_token = verification_token;
-        this.verified = verified;
-    }
-
-    // Constructor without id
-    public User(String first_name, String last_name, String username, String email, String password,
-            Date date_created, String verification_token, boolean verified) {
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.email = email;
-        this.password = password;
-        this.date_created = date_created;
-        this.verification_token = verification_token;
-        this.verified = verified;
-    }
-
-    // Constructor without verification_token and verified status
-    public User(String first_name, String last_name, String username, String email, String password,
-            Date date_created) {
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.email = email;
-        this.password = password;
-        this.date_created = date_created;
-        this.verified = false; 
-    }
 
     // Getters and setters for each field
     public int getId() {
@@ -127,5 +90,6 @@ public class User {
     public void setVerified(boolean verified) {
         this.verified = verified;
     }
+        
     
 }

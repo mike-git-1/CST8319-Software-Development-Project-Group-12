@@ -1,19 +1,9 @@
 /*
 
-This is a holdover from a previous project that I took the skeleton of to help develop the bones of Invetra's
-database stuff, specifically the user DAO.
-
-I don't know why this exists alongside the plain "User" bean, but I figured I'd configure both to work together for now and will
-come back to figure out why it's set up this way in a day or two once I have more time.
-
-If it can be removed I will 100% do that before our submission period - otherwise I'll add more comments throughout to explain
-why both beans are necessary.
-
-Cheers!
-Rowan
+Ignore the note that was here in the previous iteration; I had a brainfart and forgot what a builder pattern was LOL
+Should all be working with the builder being used to the fullest! :)
 
  */
-
 
 package database.beans;
 
@@ -31,8 +21,12 @@ public class UserBuilder {
     String verification_token;
     boolean verified;
     
-    public void UserBuilder() {
+    public UserBuilder() {
     	
+    }
+
+    public User build() {
+        return new User(this);
     }
     
     public UserBuilder setID(int id) {
