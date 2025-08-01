@@ -75,4 +75,8 @@ public class UserBuilder {
     	return this;
     }
 	
+    public UserBuilder setSalt(String salt) {
+    this.salt = salt;
+    return this;
+}
 }

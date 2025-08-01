@@ -91,6 +91,9 @@ public class User {
     public void setVerified(boolean verified) {
         this.verified = verified;
     }
-        
+    private String salt;
+
+public String getSalt() { return salt; }
+public void setSalt(String salt) { this.salt = salt; }    
     
 }
