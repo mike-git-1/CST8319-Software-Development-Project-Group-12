@@ -1,0 +1,35 @@
+# --- Build and IDE directories ---
+/target/
+*.class
+*.log
+*.war
+*.jar
+
+# --- VS Code ---
+.vscode/
+
+# --- Maven ---
+/.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+/target/
+*.class
+
+# --- Tomcat / Jetty working directories ---
+tomcat.*
+work/
+temp/
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Database / IDE specific files ---
+*.h2.db
+*.mv.db
+*.sqlite
+*.sql
+*.db
+
