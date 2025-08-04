@@ -1,0 +1,29 @@
+package com.inventra.service;
+
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Base64;
+
+public class AuthService {
+
+    public static String generateSalt() {
+        byte[] salt = new byte[16];
+        new SecureRandom().nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
+    }
+
+    public static String hashPassword(String password, String salt) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update((password + salt).getBytes());
+        byte[] hashed = md.digest();
+        return Base64.getEncoder().encodeToString(hashed);
+    }
+
+    public boolean validateLogin(String inputPassword, String storedHash, String salt) throws Exception {
+        String hashedInput = hashPassword(inputPassword, salt);
+        System.out.println("Hashed Input: " + hashedInput);
+        System.out.println("Salt: " + salt);
+        System.out.println("Stored Hash: " + storedHash);
+        return hashedInput.equals(storedHash);
+    }
+}
