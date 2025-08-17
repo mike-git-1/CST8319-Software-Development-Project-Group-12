@@ -12,6 +12,7 @@ import com.inventra.model.builders.ProductBuilder;
 import com.inventra.util.SKUGenerator;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 @WebServlet(urlPatterns = { "/products/*" })
 public class ProductServlet extends HttpServlet {
@@ -20,33 +21,21 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String pathInfo = request.getPathInfo();
-        if (pathInfo == null || pathInfo.length() <= 1) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No product ID provided!");
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized - Usernot logged in!");
             return;
         }
-
-        int productId;
-        try {
-            productId = Integer.parseInt(pathInfo.substring(1));
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid product ID format!");
-            return;
-        }
+        Company company = (Company) session.getAttribute("company");
+        int companyId = company.getCompanyId();
 
         try {
-            Product product = productDAO.getProductById(productId);
-            if (product == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Product not found!");
-                return;
-            }
-
-            request.setAttribute("product", product);
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/product.jsp"); // TODO: Create product.jsp
-            dispatcher.forward(request, response);
-        } catch (Exception e) {
+            request.setAttribute("products", productDAO.getProductsByCompanyId(companyId));
+            request.getRequestDispatcher("/products-list.jsp").forward(request, response);
+        } catch (SQLException e) {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error!");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to fetch products");
         }
     }
 
@@ -105,6 +94,88 @@ public class ProductServlet extends HttpServlet {
             response.getWriter()
                     .write("{\"success\": false, \"message\": \"Server error while adding product.\"}");
 
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String pathInfo = request.getPathInfo(); // id part of the url, e.g "/product/update/123"
+
+        if (pathInfo == null || pathInfo.length() <= 1) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No product ID provided!");
+            return;
+        }
+
+        int productId;
+        try {
+            productId = Integer.parseInt(pathInfo.substring(1)); // get the product id from the url
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid product ID!");
+            return;
+        }
+
+        try {
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            double price = Double.parseDouble(request.getParameter("price"));
+
+            Product existingProduct = productDAO.getProductById(productId);
+
+            if (existingProduct == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Product not found!");
+                return;
+            }
+
+            existingProduct.setName(name);
+            existingProduct.setDescription(description);
+            existingProduct.setPrice(price);
+
+            boolean updated = productDAO.updateProduct(existingProduct);
+
+            if (updated) {
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Product updated successfully!");
+            } else {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to update product!");
+            }
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid number format!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error updating product!");
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String pathInfo = request.getPathInfo(); // e.g "/product/delete/1"
+        if (pathInfo == null || pathInfo.length() <= 1) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No product ID provided!");
+            return;
+        }
+
+        int productId;
+        try {
+            productId = Integer.parseInt(pathInfo.substring(1)); // get the product id from the url
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid product ID!");
+            return;
+        }
+
+        try {
+            boolean deleted = productDAO.deleteProduct(productId);
+
+            if (deleted) {
+                response.getWriter().write("Product deleted successfully!");
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Product not found!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete product");
         }
     }
 }

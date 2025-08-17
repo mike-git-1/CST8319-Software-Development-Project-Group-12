@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.UUID;
 
 import com.inventra.database.dao.CompanyPermissionsDAO;
@@ -22,7 +23,25 @@ public class UserServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response)
                         throws ServletException, IOException {
+                HttpSession session = request.getSession(false);
 
+                if (session == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized - User not logged in!");
+                return;
+                }
+                // session returns object. Cast to Company
+                // Company company = (Company) session.getAttribute("company");
+                // int companyId = company.getCompanyId();
+
+                try {
+                // request.setAttribute("users", userDAO.getUsersByCompanyId(companyId));
+                request.setAttribute("users", userDao.selectAllUsers());
+                request.getRequestDispatcher("/users-list.jsp").forward(request, response);
+                } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to fetch users");
+                }
         }
 
         @Override
@@ -100,6 +119,45 @@ public class UserServlet extends HttpServlet {
                         resp.getWriter().write("{\"success\": false, \"message\": \"Server error occurred.\"}");
                 }
 
+        }
+
+        @Override
+        protected void doPut(HttpServletRequest request, HttpServletResponse response)
+                        throws ServletException, IOException {
+                // 
+        }
+
+        @Override
+        protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+                        throws ServletException, IOException {
+                String pathInfo = request.getPathInfo(); // e.g "/user/delete/1"
+                if (pathInfo == null || pathInfo.length() <= 1) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No user ID provided!");
+                return;
+                }
+
+                int userId;
+
+                try {
+                userId = Integer.parseInt(pathInfo.substring(1)); // get the user id from the url
+                } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid user ID!");
+                return;
+                }
+
+                try {
+                boolean deleted = userDao.deleteUser(userId);
+
+                if (deleted) {
+                        response.getWriter().write("User deleted successfully!");
+                } else {
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found!");
+                }
+                } catch (SQLException e) {
+                        e.printStackTrace();
+                        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete user");
+                }
+                
         }
 
 }

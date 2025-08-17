@@ -8,7 +8,7 @@ import java.sql.Statement;
 public class DBConnection {
 
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "Appraisal5201"; // EDIT ROOT PASSWORD
+    private static final String PASSWORD = "inventraroothost@12"; // EDIT ROOT PASSWORD
     private static final String CONN_STRING = "jdbc:mysql://localhost:3306/inventradatabase";
 
     public static Connection getConnectionToDatabase() {
