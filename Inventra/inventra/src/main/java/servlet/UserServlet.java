@@ -35,7 +35,6 @@ public class UserServlet extends HttpServlet {
         String email = req.getParameter("email");
         String password = req.getParameter("password");
 
-        // TODO: You should hash the password here before checking!
         // For demo, assuming plain text matching in UserDAO.validateLogin
         User user = userDAO.validateLogin(email, password);
 
