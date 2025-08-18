@@ -72,6 +72,20 @@ public class LocationDAO {
         return null;
     }
 
+    public String getLocationName(int locationId) throws SQLException {
+        String sql = "SELECT name FROM locations WHERE location_id = ?";
+        try (Connection conn = DBConnection.getConnectionToDatabase();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, locationId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        }
+        return null;
+    }
+
     public List<Location> getLocationsByCompanyId(int companyId) throws SQLException {
         String sql = "SELECT * FROM locations WHERE company_id = ?";
         List<Location> locations = new ArrayList<>();

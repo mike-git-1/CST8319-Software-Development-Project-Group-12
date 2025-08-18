@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import com.google.gson.JsonObject;
 import com.inventra.database.dao.CompanyPermissionsDAO;
+import com.inventra.database.dao.LocationDAO;
 import com.inventra.database.dao.LocationPermissionsDAO;
 import com.inventra.model.beans.CompanyPermission;
 import com.inventra.model.beans.LocationPermission;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpSession;
 public class UserPermissionsServlet extends HttpServlet {
     private CompanyPermissionsDAO companyPermsDao = new CompanyPermissionsDAO();
     private LocationPermissionsDAO locationPermsDao = new LocationPermissionsDAO();
+    private LocationDAO locationDao = new LocationDAO();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -42,15 +44,21 @@ public class UserPermissionsServlet extends HttpServlet {
                 return;
             }
 
+            int locationId = locationPerms.getLocationId();
+
+            String locationName = locationDao.getLocationName(locationId);
+
             JsonObject result = new JsonObject();
             result.addProperty("companyHierarchy", companyPerms.getHierarchy());
             result.addProperty("canAddRemoveUser", companyPerms.getAddRemoveUser());
             result.addProperty("canViewCompanyAudit", companyPerms.getViewAudit());
             result.addProperty("canManageUserCompanyPerm", companyPerms.getManageUserCompanyPerm());
-            result.addProperty("canChangeCompanyName", companyPerms.getChangeName());
+            result.addProperty("canManageCompaniesAndLocations", companyPerms.getChangeName());
             result.addProperty("canAddRemoveProduct", companyPerms.getAddRemoveProduct());
             result.addProperty("canEditProduct", companyPerms.getEditProduct());
 
+            result.addProperty("locationId", locationId);
+            result.addProperty("locationName", locationName);
             result.addProperty("locationHierarchy", locationPerms.getHierarchy());
             result.addProperty("canViewLocationAudit", locationPerms.getViewAudit());
             result.addProperty("canAddUser", locationPerms.getAddUser());

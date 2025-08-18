@@ -244,7 +244,7 @@ public class AuditDAO {
                 "LEFT JOIN locations ON audit.location_id = locations.location_id " + // Join location table to get
                                                                                       // location name
                 "LEFT JOIN users ON audit.user_id = users.user_id " + // Join user table to get user email
-                "WHERE audit.location_id = ?;";
+                "WHERE audit.location_id = ? ORDER BY audit.datetime DESC;";
         List<AuditDTO> audits = new ArrayList<>();
 
         try (Connection conn = DBConnection.getConnectionToDatabase();

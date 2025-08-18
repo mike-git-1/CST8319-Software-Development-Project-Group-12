@@ -60,12 +60,14 @@ language="java" %>
           <a
             href="#"
             class="nav-item"
+            id="location-link"
             onclick="showSection('locations-section',this)"
             >Locations</a
           >
           <a
             href="#"
             class="nav-item"
+            id="company-link"
             onclick="showSection('companies-section',this)"
             >Company Info</a
           >
@@ -497,7 +499,7 @@ language="java" %>
                       value="cmpy-edit-name"
                     />
                     <label for="cmpy-edit-name">
-                      Edit Company & Location Profile
+                      Manage Companies & Locations
                     </label>
                   </div>
                   <div class="checkbox-item">

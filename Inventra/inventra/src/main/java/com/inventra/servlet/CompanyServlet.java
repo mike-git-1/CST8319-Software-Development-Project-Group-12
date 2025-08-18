@@ -3,17 +3,21 @@ package com.inventra.servlet;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
+
+import com.inventra.database.dao.AuditDAO;
 import com.inventra.database.dao.CompanyDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import com.inventra.model.beans.Company;
 import com.inventra.model.builders.CompanyBuilder;
+import com.inventra.service.AuditService;
 import com.inventra.service.SessionUtils;
 
 @WebServlet(urlPatterns = { "/companies/*" })
 public class CompanyServlet extends HttpServlet {
     private final CompanyDAO companyDAO = new CompanyDAO();
+    private final AuditService auditService = new AuditService(new AuditDAO());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -118,6 +122,7 @@ public class CompanyServlet extends HttpServlet {
         try {
             // session returns object. Cast to Integer, then int
             int adminId = (Integer) session.getAttribute("userId");
+            int adminCompanyId = (Integer) session.getAttribute("companyId");
 
             int companyId = Integer.parseInt(pathInfo.substring(1)); // get the company id from the url
 
@@ -131,6 +136,8 @@ public class CompanyServlet extends HttpServlet {
                 return;
             }
 
+            String currentName = existingCompany.getName();
+
             existingCompany.setName(name);
             existingCompany.setAdminId(adminId);
 
@@ -143,6 +150,8 @@ public class CompanyServlet extends HttpServlet {
 
                 return;
             }
+
+            auditService.logUpdatedCompany(adminId, adminCompanyId, companyId, currentName, name);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter()

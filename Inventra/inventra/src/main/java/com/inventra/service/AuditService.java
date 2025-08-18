@@ -219,7 +219,7 @@ public class AuditService {
 
         checkPermissionChange(userId, companyId, -1, changeTargetId, "View Audit (C)", oldPerm.getViewAudit(),
                 newPerm.getViewAudit(), now);
-        checkPermissionChange(userId, companyId, -1, changeTargetId, "Add User (C)", oldPerm.getAddRemoveUser(),
+        checkPermissionChange(userId, companyId, -1, changeTargetId, "Add/Remove Users (C)", oldPerm.getAddRemoveUser(),
                 newPerm.getAddRemoveUser(), now);
         checkPermissionChange(userId, companyId, -1, changeTargetId, "Permission Manager (C)",
                 oldPerm.getManageUserCompanyPerm(), newPerm.getManageUserCompanyPerm(), now);
@@ -231,6 +231,14 @@ public class AuditService {
         checkPermissionChange(userId, companyId, -1, changeTargetId, "Edit Products (C)", oldPerm.getEditProduct(),
                 newPerm.getEditProduct(), now);
 
+    }
+
+    public void logUpdatedCompany(int userId, int companyId, int changeTargetId, String oldValue, String newValue) {
+        Date now = new Date(System.currentTimeMillis()); // get current date
+        if (!oldValue.equals(newValue)) {
+            logChange(userId, companyId, -1, ChangeTypeEnum.MODIFIED, ChangeTargetEnum.COMPANY,
+                    changeTargetId, "Name", oldValue, newValue, now);
+        }
     }
 
     private void checkPermissionChange(

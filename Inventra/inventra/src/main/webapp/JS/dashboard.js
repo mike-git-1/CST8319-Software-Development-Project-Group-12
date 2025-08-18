@@ -120,8 +120,11 @@ const checkUserPermissions = async () => {
     const userTab = document.getElementById("users-link");
     const auditTab = document.getElementById("audit-link");
     const inventoryTab = document.getElementById("inventory-link");
+    const locationTab = document.getElementById("location-link");
+    const companyTab = document.getElementById("company-link");
     const addUserBtn = document.getElementById("add-user-btn");
     const editUserBtns = document.getElementsByClassName("edit-user-btn");
+    const locationDropdown = document.getElementById("edit-user-location");
     const companyPermGroup = document.getElementById("cmpy-perm-group");
     const locationPermGroup = document.getElementById("loc-perm-group");
     const deleteUserBtns = document.getElementsByClassName("delete-user-btn");
@@ -161,6 +164,21 @@ const checkUserPermissions = async () => {
       }
     }
 
+    // if user has only location permission manager access
+    if (
+      data.canManageUserCompanyPerm === 0 &&
+      data.canManageUserLocationPerm > 0
+    ) {
+      // Clear existing options and add only the user’s home location to the dropdown
+      locationDropdown.innerHTML = "";
+      const option = document.createElement("option");
+      option.value = data.locationId;
+      option.textContent = data.locationName;
+      locationDropdown.appendChild(option);
+    } else {
+      loadLocationDropdown(true);
+    }
+
     // disable/enable edit user buttons
     if (editUserBtns.length > 0) {
       for (let i = 0; i < editUserBtns.length; i++) {
@@ -173,16 +191,14 @@ const checkUserPermissions = async () => {
 
     // disable/enable add location button
     if (addLocationBtn) {
-      addLocationBtn.disabled = !(
-        data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
-      );
+      addLocationBtn.disabled = !(data.canManageCompaniesAndLocations > 0);
     }
 
     // disable/enable delete location buttons
     if (deleteLocationBtns.length > 0) {
       for (let i = 0; i < deleteLocationBtns.length; i++) {
         deleteLocationBtns[i].disabled = !(
-          data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
+          data.canManageCompaniesAndLocations > 0
         );
       }
     }
@@ -195,7 +211,9 @@ const checkUserPermissions = async () => {
     if (editLocationBtns.length > 0) {
       for (let i = 0; i < editLocationBtns.length; i++) {
         editLocationBtns[i].disabled = !(
-          data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
+          data.canChangeLocationName > 0 ||
+          data.canChangeLocationAddress > 0 ||
+          data.canManageCompaniesAndLocations > 0
         );
       }
     }
@@ -254,7 +272,7 @@ const checkUserPermissions = async () => {
 
     // disable/enable edit company button
     if (editCompanyBtn) {
-      editCompanyBtn.disabled = !(data.canChangeCompanyName > 0);
+      editCompanyBtn.disabled = !(data.canManageCompaniesAndLocations > 0);
     }
 
     // show/hide user tab
@@ -274,6 +292,16 @@ const checkUserPermissions = async () => {
         : "none";
 
     inventoryTab.style.display = data.canViewStock > 0 ? "block" : "none";
+
+    locationTab.style.display =
+      data.canChangeLocationName > 0 ||
+      data.canChangeLocationAddress > 0 ||
+      data.canManageCompaniesAndLocations > 0
+        ? "block"
+        : "none";
+
+    companyTab.style.display =
+      data.canManageCompaniesAndLocations > 0 ? "block" : "none";
   } catch (error) {
     console.error("Fetch Error:", error);
   }
@@ -936,13 +964,21 @@ const loadLocationDropdown = async (isEdit = false) => {
     // Prevent duplicate options if modal is opened multiple times
     dropdown.innerHTML = "";
 
-    // populate dropdown
-    locations.forEach((location) => {
+    if (Array.isArray(locations)) {
+      // User has company-wide access (received a list)
+      locations.forEach((location) => {
+        const option = document.createElement("option");
+        option.value = location.locationId;
+        option.textContent = location.name;
+        dropdown.appendChild(option);
+      });
+    } else if (locations && locations.locationId) {
+      // User has location-specific access (received a single location object)
       const option = document.createElement("option");
-      option.value = location.locationId;
-      option.textContent = location.name;
+      option.value = locations.locationId;
+      option.textContent = locations.name;
       dropdown.appendChild(option);
-    });
+    }
 
     // async returns a promise
     return dropdown;
