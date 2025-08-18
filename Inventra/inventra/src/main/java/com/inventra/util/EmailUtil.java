@@ -13,8 +13,8 @@ import jakarta.mail.internet.MimeMessage;
 public class EmailUtil {
 
     public static void sendEmail(String toEmail, String subject, String body) throws MessagingException {
-        String fromEmail = "inventrajoe@gmail.com"; // your email
-        String password = "uois vyyx jrzv zfff "; // Gmail app password
+        String fromEmail = "@gmail.com"; // your email
+        String password = ""; // Gmail app password
 
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
