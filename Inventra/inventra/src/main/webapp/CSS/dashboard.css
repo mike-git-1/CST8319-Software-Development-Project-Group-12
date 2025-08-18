@@ -174,6 +174,13 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: 4px;
 }
 
 .section-header h2 {
@@ -187,7 +194,8 @@ body {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(118, 75, 162, 0.1);
-  overflow: hidden;
+  /* overflow: hidden; */
+  margin-bottom: 30px;
 }
 
 .table {
@@ -214,6 +222,7 @@ body {
   padding: 16px 12px;
   border-bottom: 1px solid #f0f0f0;
   vertical-align: middle;
+  max-width: 300px;
 }
 
 .table tbody tr {
@@ -242,33 +251,70 @@ body {
   font-size: 14px;
 }
 
-.role-badge {
+.audit-action-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: white;
 }
 
-.role-badge.admin {
+.audit-action-badge.badge-remove {
   background: #ef4444;
-  color: white;
 }
 
-.role-badge.manager {
+.audit-action-badge.badge-modify {
   background: #f59e0b;
-  color: white;
 }
 
-.role-badge.staff {
+.audit-action-badge.badge-add {
   background: #10b981;
-  color: white;
 }
 
-.role-badge.viewer {
-  background: #6c757d;
-  color: white;
+.audit-target-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Specific types */
+.badge-user {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.badge-company {
+  color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.badge-permission {
+  color: #fd7e14;
+  border-color: #fd7e14;
+}
+
+.badge-product {
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.badge-location {
+  color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.badge-inventory {
+  color: #dc3545;
+  border-color: #dc3545;
 }
 
 .status-badge {
@@ -327,12 +373,12 @@ body {
   background: #f87171;
 }
 
-.action-btn.add-inventory {
+.action-btn.add-inventory-btn {
   background: #10b981;
   color: white;
 }
 
-.action-btn.add-inventory:hover {
+.action-btn.add-inventory-btn:hover {
   background: #34d399;
 }
 
@@ -356,6 +402,8 @@ body {
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
+  /* overflow-y: auto;
+  max-height: 90vh; */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease;
 }
@@ -379,6 +427,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .modal-header h3 {
@@ -407,11 +456,7 @@ body {
   padding: 0 20px;
 }
 
-.form-group:first-child {
-  margin-top: 20px;
-}
-
-/* .form-row:first-child {
+/* .form-group:first-child {
   margin-top: 20px;
 } */
 
@@ -464,6 +509,53 @@ input[disabled] {
   border-color: #764ba2;
   box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
 }
+
+.chkbox-subtitle {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
+.checkbox-group {
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  /* gap: 0.75rem; */
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.checkbox-item:hover {
+  background-color: #f8f9fa;
+  border-color: #667eea;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 12px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.checkbox-item label {
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  flex: 1;
+  font-weight: 400;
+  margin-bottom: 0;
+}
+
 .invitation-link {
   margin: 10px 0;
   padding: 10px 14px;
@@ -498,6 +590,23 @@ input[disabled] {
   border-color: #ccc;
   background: #f5f5f5;
 }
+
+button:disabled {
+  background-color: #333;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* #users-link,
+#audit-link,
+#inventory-link {
+  display: none;
+} */
+
+/* .delete-user-btn,
+.edit-user-btn {
+  display: none;
+}  */
 
 @media (max-width: 768px) {
   .table {

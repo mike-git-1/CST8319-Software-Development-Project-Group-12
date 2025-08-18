@@ -2,9 +2,10 @@ package com.inventra.servlet;
 
 import java.io.IOException;
 
-import com.inventra.database.dao.CompanyDAO;
+import com.inventra.database.dao.CompanyPermissionsDAO;
+import com.inventra.database.dao.LocationPermissionsDAO;
 import com.inventra.database.dao.UserDAO;
-import com.inventra.model.beans.Company;
+
 import com.inventra.model.beans.User;
 import com.inventra.service.AuthService;
 
@@ -16,9 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
-	public LoginServlet() {
-		super();
-	}
+	private final CompanyPermissionsDAO companyPermissionsDao = new CompanyPermissionsDAO();
+	private final LocationPermissionsDAO locationPermissionsDao = new LocationPermissionsDAO();
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -44,7 +44,7 @@ public class LoginServlet extends HttpServlet {
 			// find user
 			User user = userDAO.findUserByEmail(email);
 
-			// if does not exist or not verified
+			// if user does not exist or not verified
 			if (user == null || !user.isVerified()) {
 				request.setAttribute("error", error);
 				request.getRequestDispatcher("index.jsp").forward(request, response);
@@ -60,11 +60,23 @@ public class LoginServlet extends HttpServlet {
 				return;
 			}
 
-			CompanyDAO companyDAO = new CompanyDAO();
-			Company company = companyDAO.getCompanyByUserId(user.getId());
+			// set userId in session
+			request.getSession().setAttribute("userId", user.getId());
 
-			request.getSession().setAttribute("user", user);
-			request.getSession().setAttribute("company", company);
+			int companyId = companyPermissionsDao.getCompanyIdByUserId(user.getId());
+
+			if (companyId > 0) {
+				// set companyId in session
+				request.getSession().setAttribute("companyId", companyId);
+			}
+
+			int locationId = locationPermissionsDao.getLocationIdByUserId(user.getId());
+
+			if (locationId > 0) {
+				// set locationId in session
+				request.getSession().setAttribute("locationId", locationId);
+			}
+
 			response.sendRedirect("dashboard");
 
 		} catch (
@@ -79,25 +91,3 @@ public class LoginServlet extends HttpServlet {
 	}
 
 }
-
-// private void handleLogin(HttpServletRequest req, HttpServletResponse resp)
-// throws Exception {
-// String email = req.getParameter("email");
-// String password = req.getParameter("password");
-
-// UserDAO userDAO = new UserDAO(conn);
-// User user = userDAO.findByEmail(email);
-
-// if (user != null) {
-// AuthService authService = new AuthService();
-// if (authService.validateLogin(password, user.getHashedPassword(),
-// user.getSalt())) {
-// HttpSession session = req.getSession();
-// session.setAttribute("user", user);
-// resp.sendRedirect("dashboard.jsp");
-// return;
-// }
-// }
-
-// resp.sendRedirect("login.jsp?error=invalid");
-// }

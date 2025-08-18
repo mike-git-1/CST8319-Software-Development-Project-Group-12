@@ -5,6 +5,7 @@ import com.inventra.model.beans.ProductInventoryDTO;
 public class ProductInventoryDTOBuilder {
     private int productId;
     private int locationId;
+    private String location;
     private String sku;
     private String name;
     private double price;
@@ -17,6 +18,11 @@ public class ProductInventoryDTOBuilder {
 
     public ProductInventoryDTOBuilder withLocationId(int locationId) {
         this.locationId = locationId;
+        return this;
+    }
+
+    public ProductInventoryDTOBuilder withLocation(String location) {
+        this.location = location;
         return this;
     }
 
@@ -41,6 +47,6 @@ public class ProductInventoryDTOBuilder {
     }
 
     public ProductInventoryDTO build() {
-        return new ProductInventoryDTO(productId, locationId, sku, name, price, quantity);
+        return new ProductInventoryDTO(productId, locationId, location, sku, name, price, quantity);
     }
 }

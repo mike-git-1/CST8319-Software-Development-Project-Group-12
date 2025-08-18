@@ -1,7 +1,5 @@
-<%@ page session="true" %> <%@ page import="com.inventra.model.beans.User" %>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %> <% User user =
-(User) session.getAttribute("user"); if (user == null) {
-response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
+<%@ page session="true" %> <%@ page contentType="text/html;charset=UTF-8"
+language="java" %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -34,24 +32,28 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
           <a
             href="#"
             class="nav-item active"
+            id="products-link"
             onclick="showSection('products-section',this)"
             >Products</a
           >
           <a
             href="#"
             class="nav-item"
+            id="inventory-link"
             onclick="showSection('inventory-section',this)"
             >Inventory</a
           >
           <a
             href="#"
             class="nav-item"
-            onclick="showSection('analytics-section',this)"
-            >Analytics</a
+            id="audit-link"
+            onclick="showSection('audit-section',this)"
+            >Audit</a
           >
           <a
             href="#"
             class="nav-item"
+            id="users-link"
             onclick="showSection('users-section',this)"
             >Users</a
           >
@@ -65,7 +67,7 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
             href="#"
             class="nav-item"
             onclick="showSection('companies-section',this)"
-            >Companies</a
+            >Company Info</a
           >
           <a
             href="#"
@@ -92,8 +94,15 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
         <!-- Products -->
         <div id="products-section">
           <div class="section-header">
-            <h2>Products</h2>
-            <button class="add-btn" onclick="showProductModal()">
+            <div class="section-title">
+              <h2>Products</h2>
+              <p class="section-subtitle">${company.name}</p>
+            </div>
+            <button
+              class="add-btn"
+              id="add-product-btn"
+              onclick="showProductModal()"
+            >
               <span style="margin-right: 8px">+</span>Add Product
             </button>
           </div>
@@ -177,7 +186,10 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
         <!-- inventory -->
         <div id="inventory-section" style="display: none">
           <div class="section-header">
-            <h2>Product Inventory</h2>
+            <div class="section-title">
+              <h2>Product Inventory</h2>
+              <p class="section-subtitle">${company.name} • ${location.name}</p>
+            </div>
           </div>
           <div class="table-container">
             <table class="table" id="inventory-table">
@@ -185,9 +197,9 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                 <tr>
                   <th>SKU</th>
                   <th>Name</th>
+                  <th>Location</th>
                   <th>Price</th>
                   <th>Quantity</th>
-                  <th>Location</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -215,12 +227,7 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                   id="inv-product-id"
                   name="inv-product-id"
                 />
-                <input
-                  type="hidden"
-                  id="inv-product-location-id"
-                  name="inv-product-location-id"
-                />
-                <input type="hidden" id="inv-mode" name="inv-mode" />
+                <input type="hidden" id="inv-action" name="inv-action" />
               </div>
               <div class="form-group">
                 <label for="inv-product-sku">SKU</label>
@@ -289,19 +296,45 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
           </div>
         </div>
 
-        <!-- Analytics -->
-        <div id="analytics-section" style="display: none">
+        <!-- Audit-->
+        <div id="audit-section" style="display: none">
           <div class="section-header">
-            <h2>Analytics</h2>
+            <div class="section-title">
+              <h2>Audit</h2>
+              <p class="section-subtitle">${company.name}</p>
+            </div>
           </div>
-          <p>This is the analytics section</p>
+          <div class="table-container">
+            <table class="table" id="audit-table">
+              <thead>
+                <tr>
+                  <th>Audit ID</th>
+                  <th>Date</th>
+                  <th>Location</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Target ID</th>
+                  <th>Category</th>
+                  <th>Property</th>
+                  <th>Previous Value</th>
+                  <th>New Value</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <!-- audit rows will be added here  -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Users -->
         <div id="users-section" style="display: none">
           <div class="section-header">
-            <h2>User Management</h2>
-            <button class="add-btn" onclick="showUserModal()">
+            <div class="section-title">
+              <h2>User Management</h2>
+              <p class="section-subtitle">${company.name}</p>
+            </div>
+            <button class="add-btn" id="add-user-btn" onclick="showUserModal()">
               <span style="margin-right: 8px">+</span>Add User
             </button>
           </div>
@@ -314,7 +347,6 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                   <th>First Name</th>
                   <th>Email</th>
                   <th>Location</th>
-                  <!-- <th>Role</th> -->
                   <th>Status</th>
                   <th>Date created</th>
                   <th>Actions</th>
@@ -322,33 +354,12 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
               </thead>
               <tbody id="users-table-body">
                 <!-- User rows will be added here  -->
-                <!-- <tr>
-                  <td><div class="avatar-table">JD</div></td>
-                  <td>Doe</td>
-                  <td>John</td>
-                  <td>john.doe@example.com</td>
-                  <td>Ottawa</td>
-                  <td><span class="role-badge admin">Admin</span></td>
-                  <td><span class="status-badge active">Verified</span></td>
-                  <td>2 hours ago</td>
-                  <td>
-                    <button class="action-btn edit" onclick="editUser(this)">
-                      Edit
-                    </button>
-                    <button
-                      class="action-btn delete"
-                      onclick="deleteRow(this,'user')"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr> -->
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- User modal form -->
+        <!-- Add User modal form -->
         <div id="user-modal" class="modal">
           <div class="modal-content">
             <div class="modal-header">
@@ -356,36 +367,23 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
               <span class="close" onclick="closeModal('user')">&times;</span>
             </div>
             <form id="user-form" action="#">
-              <!-- <div class="form-row">
-                <div class="form-group">
-                  <label for="user-lastname">Last Name</label>
-                  <input
-                    type="text"
-                    id="user-lastname"
-                    name="user-lastname"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="user-firstname">First Name</label>
-                  <input
-                    type="text"
-                    id="user-firstname"
-                    name="user-firstname"
-                    required
-                  />
-                </div>
-              </div> -->
-              <!-- <div class="form-group">
-                <label for="user-location">Location</label>
-                <select id="user-location" name="user-location" required>
-                  <option style="color: #666" value="">Select Location</option>
-                  <option value="1">Location 1</option>
-                  <option value="2">Location 2</option>
-                  <option value="3">Location 3</option>
+              <div class="form-group">
+                <label for="user-company">Company</label>
+                <input
+                  type="text"
+                  id="user-company"
+                  name="user-company"
+                  value="${company.name}"
+                  readonly
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label for="edit-user-location">Location</label>
+                <select id="add-user-location" name="user-location" required>
+                  <!-- insert location options -->
                 </select>
-              </div> -->
-
+              </div>
               <div class="form-group">
                 <label for="user-email">Email</label>
                 <input type="email" id="user-email" name="email" required />
@@ -403,7 +401,215 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                   Cancel
                 </button>
                 <button type="submit" class="add-btn" id="user-modal-btn">
-                  Send Link
+                  Invite User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Edit User modal form -->
+        <div id="edit-user-modal" class="modal">
+          <div class="modal-content" style="max-width: 700px">
+            <div class="modal-header">
+              <h3 id="user-modal-title">Edit User</h3>
+              <span class="close" onclick="closeModal('edit-user')"
+                >&times;</span
+              >
+            </div>
+            <form id="edit-user-form" action="#">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-user-lastname">Last Name</label>
+                  <input
+                    type="text"
+                    id="edit-user-lastname"
+                    name="edit-user-lastname"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="edit-user-firstname">First Name</label>
+                  <input
+                    type="text"
+                    id="edit-user-firstname"
+                    name="edit-user-firstname"
+                  />
+                </div>
+                <input type="hidden" id="edit-user-id" name="edit-user-id" />
+              </div>
+              <div class="form-group">
+                <label for="edit-user-email">Email</label>
+                <input type="email" id="edit-user-email" name="email" />
+              </div>
+              <div class="form-group">
+                <label for="edit-user-location">Location</label>
+                <select id="edit-user-location" name="user-location" required>
+                  <!-- insert location options -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="edit-user-hierarchy">Role</label>
+                <select
+                  id="edit-user-hierarchy"
+                  name="edit-user-hierarchy"
+                  required
+                >
+                  <option value="1">Admin</option>
+                  <option value="99">Manager</option>
+                  <option value="999">Employee</option>
+                </select>
+              </div>
+              <div class="form-group" id="cmpy-perm-group">
+                <p class="chkbox-subtitle">Company-level Access</p>
+                <div class="checkbox-group">
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-view-audit"
+                      name="permissions"
+                      value="cmpy-view-audit"
+                    />
+                    <label for="cmpy-view-audit"> View Audit </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-add-rmv-user"
+                      name="permissions"
+                      value="cmpy-add-rmv-user"
+                    />
+                    <label for="cmpy-add-rmv-user"> Add/Remove Users </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-perm-manager"
+                      name="permissions"
+                      value="cmpy-perm-manager"
+                    />
+                    <label for="cmpy-perm-manager"> Permisison Manager </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-edit-name"
+                      name="permissions"
+                      value="cmpy-edit-name"
+                    />
+                    <label for="cmpy-edit-name">
+                      Edit Company & Location Profile
+                    </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-add-rmv-products"
+                      name="permissions"
+                      value="cmpy-add-rmv-products"
+                    />
+                    <label for="cmpy-add-rmv-products">
+                      Add/Remove Products
+                    </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="cmpy-edit-products"
+                      name="permissions"
+                      value="cmpy-edit-products"
+                    />
+                    <label for="cmpy-edit-products"> Edit Products </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" id="loc-perm-group">
+                <p class="chkbox-subtitle">Location-level Access</p>
+                <div class="checkbox-group">
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-view-audit"
+                      name="permissions"
+                      value="loc-view-audit"
+                    />
+                    <label for="loc-view-audit"> View Audit </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-add-user"
+                      name="permissions"
+                      value="loc-add-user"
+                    />
+                    <label for="loc-add-user"> Add Users </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-rmv-user"
+                      name="permissions"
+                      value="loc-rmv-user"
+                    />
+                    <label for="loc-rmv-user"> Remove Users </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-perm-manager"
+                      name="permissions"
+                      value="loc-perm-manager"
+                    />
+                    <label for="loc-perm-manager"> Permisison Manager </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-edit-name"
+                      name="permissions"
+                      value="loc-edit-name"
+                    />
+                    <label for="loc-edit-name"> Edit Location Name </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-edit-addresses"
+                      name="permissions"
+                      value="loc-edit-addresses"
+                    />
+                    <label for="loc-edit-addresses"> Edit Addresses </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-view-stock"
+                      name="permissions"
+                      value="loc-view-stock"
+                    />
+                    <label for="loc-view-stock"> View Stock </label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="loc-edit-stock"
+                      name="permissions"
+                      value="loc-edit-stock"
+                    />
+                    <label for="loc-edit-stock"> Manage Stock </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="cancel-btn"
+                  onclick="closeModal('edit-user')"
+                >
+                  Cancel
+                </button>
+                <button type="submit" class="add-btn" id="user-modal-btn">
+                  Update
                 </button>
               </div>
             </form>
@@ -413,8 +619,15 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
         <!-- Locations -->
         <div id="locations-section" style="display: none">
           <div class="section-header">
-            <h2>Locations</h2>
-            <button class="add-btn" onclick="showLocationModal()">
+            <div class="section-title">
+              <h2>Locations</h2>
+              <p class="section-subtitle">${company.name}</p>
+            </div>
+            <button
+              class="add-btn"
+              id="add-location-btn"
+              onclick="showLocationModal()"
+            >
               <span style="margin-right: 8px">+</span>Add Location
             </button>
           </div>
@@ -493,8 +706,12 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
         <!-- Companies -->
         <div id="companies-section" style="display: none">
           <div class="section-header">
-            <h2>Companies</h2>
-            <button class="add-btn" onclick="showCompanyModal()">
+            <h2>Company Info</h2>
+            <button
+              style="display: none"
+              class="add-btn"
+              onclick="showCompanyModal()"
+            >
               <span style="margin-right: 8px">+</span>Add Company
             </button>
           </div>
@@ -555,14 +772,24 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
           <div class="section-header">
             <h2>My Account</h2>
           </div>
-          <form id="edit-my-account-form" action="#">
+          <form id="my-account-form" action="#">
             <div class="form-group">
-              <label for="user-lastname">Last Name</label>
-              <input type="text" id="user-lastname" name="lastname" />
+              <label for="myuser-lastname">Last Name</label>
+              <input
+                type="text"
+                id="myuser-lastname"
+                name="lastname"
+                value="${user.last_name}"
+              />
             </div>
             <div class="form-group">
-              <label for="user-firstname">First Name</label>
-              <input type="text" id="user-firstname" name="firstname" />
+              <label for="myuser-firstname">First Name</label>
+              <input
+                type="text"
+                id="myuser-firstname"
+                name="firstname"
+                value="${user.first_name}"
+              />
             </div>
             <div class="form-group">
               <label for="user-email">Email</label>
@@ -570,7 +797,7 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                 type="email"
                 id="user-email"
                 name="email"
-                value="[to be prepopulated from backend]"
+                value="${user.email}"
                 disabled
               />
             </div>
@@ -580,7 +807,7 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                 type="text"
                 id="user-company"
                 name="company"
-                value="[to be prepopulated from backend]"
+                value="${company.name}"
                 disabled
               />
             </div>
@@ -590,7 +817,7 @@ response.sendRedirect("index"); } %> <%@ include file="products-list.jsp" %>
                 type="text"
                 id="user-location"
                 name="location"
-                value="[to be prepopulated from backend]"
+                value="${location.name}"
                 disabled
               />
             </div>

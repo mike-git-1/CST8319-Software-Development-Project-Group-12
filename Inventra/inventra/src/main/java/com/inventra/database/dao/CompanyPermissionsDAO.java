@@ -23,4 +23,59 @@ public class CompanyPermissionsDAO {
         }
     }
 
+    public CompanyPermission getCompanyPermissionByUserId(int userId) throws SQLException {
+        String query = "SELECT * FROM company_permissions WHERE user_id = ?";
+        CompanyPermission companyPermission = null;
+        try (Connection conn = DBConnection.getConnectionToDatabase();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    companyPermission = new CompanyPermission();
+                    companyPermission.setUserId(rs.getInt("user_id"));
+                    companyPermission.setCompanyId(rs.getInt("company_id"));
+                    companyPermission.setHierarchy(rs.getInt("hierarchy"));
+                    companyPermission.setViewAudit(rs.getInt("view_audit"));
+                    companyPermission.setAddRemoveUser(rs.getInt("add/remove_user"));
+                    companyPermission.setManageUserCompanyPerm(rs.getInt("manage_user_company_permissions"));
+                    companyPermission.setChangeName(rs.getInt("change_name"));
+                    companyPermission.setAddRemoveProduct(rs.getInt("add/remove_product"));
+                    companyPermission.setEditProduct(rs.getInt("edit_product"));
+                }
+            }
+        }
+        return companyPermission;
+    }
+
+    public int getCompanyIdByUserId(int userId) throws SQLException {
+        String query = "SELECT company_id FROM company_permissions WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnectionToDatabase();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("company_id");
+                }
+            }
+        }
+        return -1;
+    }
+
+    public boolean updateCompanyPermission(CompanyPermission companyPermission) throws SQLException {
+        String query = "UPDATE company_permissions SET hierarchy = ?, view_audit = ?, " +
+                " `add/remove_user` = ?, manage_user_company_permissions = ?, change_name = ?, " +
+                " `add/remove_product` = ?, edit_product = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnectionToDatabase();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, companyPermission.getHierarchy());
+            stmt.setInt(2, companyPermission.getViewAudit());
+            stmt.setInt(3, companyPermission.getAddRemoveUser());
+            stmt.setInt(4, companyPermission.getManageUserCompanyPerm());
+            stmt.setInt(5, companyPermission.getChangeName());
+            stmt.setInt(6, companyPermission.getAddRemoveProduct());
+            stmt.setInt(7, companyPermission.getEditProduct());
+            stmt.setInt(8, companyPermission.getUserId());
+            return stmt.executeUpdate() > 0;
+        }
+    }
 }

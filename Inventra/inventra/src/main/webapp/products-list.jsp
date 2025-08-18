@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %> <%@ taglib
-uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+uri="http://java.sun.com/jsp/jstl/core" prefix="c" %> <%@ taglib
+uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <c:if test="${empty products}">
   <tr>
@@ -12,10 +13,18 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
     <td><c:out value="${product.sku}" /></td>
     <td><c:out value="${product.name}" /></td>
     <td><c:out value="${product.description}" /></td>
-    <td><c:out value="${product.price}" /></td>
+    <td>
+      <fmt:formatNumber
+        value="${product.price}"
+        type="currency"
+        currencySymbol="$"
+        minFractionDigits="2"
+        maxFractionDigits="2"
+      />
+    </td>
     <td>
       <button
-        class="action-btn edit"
+        class="action-btn edit edit-product-btn"
         onclick='showProductModal({
           productId: "${product.productId}",
           name: "${product.name}",
@@ -26,13 +35,13 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         Edit
       </button>
       <button
-        class="action-btn delete"
+        class="action-btn delete delete-product-btn"
         onclick="deleteProduct(`${product.productId}`,this,'product')"
       >
         Delete
       </button>
       <button
-        class="action-btn add-inventory"
+        class="action-btn add-inventory-btn"
         onclick='showInventoryModal({
           productId: "${product.productId}",
           sku: "${product.sku}",

@@ -14,7 +14,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
     <td><c:out value="${location.address2}" /></td>
     <td>
       <button
-        class="action-btn edit"
+        class="action-btn edit edit-location-btn"
         onclick='showLocationModal({
           locationId: "${location.locationId}",
           name: "${location.name}",
@@ -25,7 +25,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         Edit
       </button>
       <button
-        class="action-btn delete"
+        class="action-btn delete delete-location-btn"
         onclick="deleteLocation(`${location.locationId}`,this,'location')"
       >
         Delete

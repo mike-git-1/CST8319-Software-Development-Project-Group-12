@@ -24,7 +24,7 @@ public class LogoutServlet extends HttpServlet {
         }
 
         // Redirect to login page or home
-        response.sendRedirect("index");
+        response.sendRedirect(request.getContextPath() + "/index");
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

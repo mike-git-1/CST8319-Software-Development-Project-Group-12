@@ -12,12 +12,31 @@ public class LocationDAO {
     public boolean insertLocation(Location location) throws SQLException {
         String sql = "INSERT INTO locations (company_id, name, address_1, address_2) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnectionToDatabase();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, location.getCompanyId());
             stmt.setString(2, location.getName());
             stmt.setString(3, location.getAddress1());
             stmt.setString(4, location.getAddress2());
             return stmt.executeUpdate() > 0;
+        }
+    }
+
+    public int insertLocationAndReturnId(Location location) throws SQLException {
+        String sql = "INSERT INTO locations (company_id, name, address_1, address_2) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnectionToDatabase();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, location.getCompanyId());
+            stmt.setString(2, location.getName());
+            stmt.setString(3, location.getAddress1());
+            stmt.setString(4, location.getAddress2());
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                ResultSet generatedKeys = stmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                }
+            }
+            return -1;
         }
     }
 

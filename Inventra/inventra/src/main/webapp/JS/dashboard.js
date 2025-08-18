@@ -1,7 +1,7 @@
-const loadMyProducts = async () => {
-  console.log("loadMyProducts called");
+const loadProducts = async () => {
+  console.log("loadProducts called");
   try {
-    const response = await fetch("/inventra/products-list");
+    const response = await fetch("/inventra/products/");
 
     if (!response.ok) {
       throw new Error("Failed to load products");
@@ -17,10 +17,29 @@ const loadMyProducts = async () => {
   }
 };
 
+const loadAuditTable = async () => {
+  console.log("loadAuditTable called");
+  try {
+    const response = await fetch("/inventra/audit/");
+
+    if (!response.ok) {
+      throw new Error("Failed to load audit table");
+    }
+
+    const html = await response.text(); // get jsp output as html string
+    document.getElementById("audit-table-body").innerHTML = html; // add audit logs to table
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    document.getElementById(
+      "audit-table-body"
+    ).innerHTML = `<tr><td colspan="5">Error loading audit logs...</td></tr>`;
+  }
+};
+
 const loadInventory = async () => {
   console.log("loadInventory called");
   try {
-    const response = await fetch("/inventra/inventory-list");
+    const response = await fetch("/inventra/inventory/");
 
     if (!response.ok) {
       throw new Error("Failed to load inventory");
@@ -39,7 +58,7 @@ const loadInventory = async () => {
 const loadLocations = async () => {
   console.log("loadLocations called");
   try {
-    const response = await fetch("/inventra/locations-list");
+    const response = await fetch("/inventra/locations/");
 
     if (!response.ok) {
       throw new Error("Failed to load locations");
@@ -58,26 +77,26 @@ const loadLocations = async () => {
 const loadCompanies = async () => {
   console.log("loadCompanies called");
   try {
-    const response = await fetch("/inventra/companies-list");
+    const response = await fetch("/inventra/companies/");
 
     if (!response.ok) {
-      throw new Error("Failed to load companies");
+      throw new Error("Failed to load company");
     }
 
     const html = await response.text(); // get jsp output as html string
-    document.getElementById("company-table-body").innerHTML = html; // add companies to table
+    document.getElementById("company-table-body").innerHTML = html; // add company to table
   } catch (error) {
     console.error("Fetch Error:", error);
     document.getElementById(
       "company-table-body"
-    ).innerHTML = `<tr><td colspan="5">Error loading companies...</td></tr>`;
+    ).innerHTML = `<tr><td colspan="5">Error loading company information...</td></tr>`;
   }
 };
 
 const loadUsers = async () => {
   console.log("loadUsers called");
   try {
-    const response = await fetch("/inventra/users-list");
+    const response = await fetch("/inventra/users/");
 
     if (!response.ok) {
       throw new Error("Failed to load users");
@@ -93,13 +112,191 @@ const loadUsers = async () => {
   }
 };
 
-document.addEventListener("DOMContentLoaded", loadMyProducts); // load TABLES on page load
+const checkUserPermissions = async () => {
+  try {
+    const response = await fetch(`/inventra/user/permissions`);
+    const data = await response.json();
+
+    const userTab = document.getElementById("users-link");
+    const auditTab = document.getElementById("audit-link");
+    const inventoryTab = document.getElementById("inventory-link");
+    const addUserBtn = document.getElementById("add-user-btn");
+    const editUserBtns = document.getElementsByClassName("edit-user-btn");
+    const companyPermGroup = document.getElementById("cmpy-perm-group");
+    const locationPermGroup = document.getElementById("loc-perm-group");
+    const deleteUserBtns = document.getElementsByClassName("delete-user-btn");
+    const editCompanyBtn = document.getElementById("edit-company-btn");
+    const addProductBtn = document.getElementById("add-product-btn");
+    const editProductBtns = document.getElementsByClassName("edit-product-btn");
+    const deleteProductBtns =
+      document.getElementsByClassName("delete-product-btn");
+    const addInventoryBtns =
+      document.getElementsByClassName("add-inventory-btn");
+    const editInventoryBtns =
+      document.getElementsByClassName("edit-inventory-btn");
+    const deleteInventoryBtns = document.getElementsByClassName(
+      "delete-inventory-btn"
+    );
+    const addLocationBtn = document.getElementById("add-location-btn");
+    const editLocationBtns =
+      document.getElementsByClassName("edit-location-btn");
+    const deleteLocationBtns = document.getElementsByClassName(
+      "delete-location-btn"
+    );
+    const locationName = document.getElementById("location-name");
+    const address1 = document.getElementById("location-address1");
+    const address2 = document.getElementById("location-address2");
+
+    // disable/enable add user button
+    if (addUserBtn) {
+      addUserBtn.disabled = !(data.canAddUser > 0 || data.canAddRemoveUser > 0);
+    }
+
+    // disable/enable delete user buttons
+    if (deleteUserBtns.length > 0) {
+      for (let i = 0; i < deleteUserBtns.length; i++) {
+        deleteUserBtns[i].disabled = !(
+          data.canRemoveUser > 0 || data.canAddRemoveUser > 0
+        );
+      }
+    }
+
+    // disable/enable edit user buttons
+    if (editUserBtns.length > 0) {
+      for (let i = 0; i < editUserBtns.length; i++) {
+        editUserBtns[i].disabled = !(
+          data.canManageUserCompanyPerm > 0 ||
+          data.canManageUserLocationPerm > 0
+        );
+      }
+    }
+
+    // disable/enable add location button
+    if (addLocationBtn) {
+      addLocationBtn.disabled = !(
+        data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
+      );
+    }
+
+    // disable/enable delete location buttons
+    if (deleteLocationBtns.length > 0) {
+      for (let i = 0; i < deleteLocationBtns.length; i++) {
+        deleteLocationBtns[i].disabled = !(
+          data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
+        );
+      }
+    }
+
+    locationName.disabled = !(data.canChangeLocationName > 0);
+    address1.disabled = !(data.canChangeLocationAddress > 0);
+    address2.disabled = !(data.canChangeLocationAddress > 0);
+
+    // disable/enable edit location buttons
+    if (editLocationBtns.length > 0) {
+      for (let i = 0; i < editLocationBtns.length; i++) {
+        editLocationBtns[i].disabled = !(
+          data.canChangeLocationName > 0 || data.canChangeLocationAddress > 0
+        );
+      }
+    }
+
+    // disable/enable company permission checkbox group
+    if (companyPermGroup) {
+      companyPermGroup.style.display =
+        data.canManageUserCompanyPerm > 0 ? "block" : "none";
+    }
+
+    // show/hide location permission checkbox group
+    if (locationPermGroup) {
+      locationPermGroup.style.display =
+        data.canManageUserLocationPerm > 0 ? "block" : "none";
+    }
+
+    // disable/enable add product button
+    if (addProductBtn) {
+      addProductBtn.disabled = !(data.canAddRemoveProduct > 0);
+    }
+
+    // disable/enable edit product buttons
+    if (editProductBtns.length > 0) {
+      for (let i = 0; i < editProductBtns.length; i++) {
+        editProductBtns[i].disabled = !(data.canEditProduct > 0);
+      }
+    }
+
+    // disable/enable delete product buttons
+    if (deleteProductBtns.length > 0) {
+      for (let i = 0; i < deleteProductBtns.length; i++) {
+        deleteProductBtns[i].disabled = !(data.canAddRemoveProduct > 0);
+      }
+    }
+
+    // disable/enable add inventory button
+    if (addInventoryBtns.length > 0) {
+      for (let i = 0; i < addInventoryBtns.length; i++) {
+        addInventoryBtns[i].disabled = !(data.canManageStock > 0);
+      }
+    }
+
+    // disable/enable edit inventory buttons
+    if (editInventoryBtns.length > 0) {
+      for (let i = 0; i < editInventoryBtns.length; i++) {
+        editInventoryBtns[i].disabled = !(data.canManageStock > 0);
+      }
+    }
+
+    // disable/enable delete inventory buttons
+    if (deleteInventoryBtns.length > 0) {
+      for (let i = 0; i < deleteInventoryBtns.length; i++) {
+        deleteInventoryBtns[i].disabled = !(data.canManageStock > 0);
+      }
+    }
+
+    // disable/enable edit company button
+    if (editCompanyBtn) {
+      editCompanyBtn.disabled = !(data.canChangeCompanyName > 0);
+    }
+
+    // show/hide user tab
+    userTab.style.display =
+      data.canAddRemoveUser > 0 ||
+      data.canRemoveUser > 0 ||
+      data.canAddUser > 0 ||
+      data.canManageUserCompanyPerm > 0 ||
+      data.canManageUserLocationPerm > 0
+        ? "block"
+        : "none";
+
+    // show/hide audit tab
+    auditTab.style.display =
+      data.canViewCompanyAudit > 0 || data.canViewLocationAudit > 0
+        ? "block"
+        : "none";
+
+    inventoryTab.style.display = data.canViewStock > 0 ? "block" : "none";
+  } catch (error) {
+    console.error("Fetch Error:", error);
+  }
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // on page load, highlight active tab, load and show content, toggle visible tabs/buttons based on user permissions.
+  await checkUserPermissions();
+  await showSection(
+    "products-section",
+    document.getElementById("products-link")
+  );
+});
+
+// // show/hide add user button
+// addUserBtn.style.display =
+//   data.canAddUser > 0 || data.canAddRemoveUser > 0 ? "block" : "none";
 
 // Show different sections
-function showSection(sectionName, element) {
-  const product = { name: "products-section", loadFn: loadMyProducts };
+async function showSection(sectionName, element) {
+  const product = { name: "products-section", loadFn: loadProducts };
   const inventory = { name: "inventory-section", loadFn: loadInventory };
-  const analytics = { name: "analytics-section", loadFn: null };
+  const audit = { name: "audit-section", loadFn: loadAuditTable };
   const users = { name: "users-section", loadFn: loadUsers };
   const locations = { name: "locations-section", loadFn: loadLocations };
   const companies = { name: "companies-section", loadFn: loadCompanies };
@@ -108,7 +305,7 @@ function showSection(sectionName, element) {
   const sections = [
     product,
     inventory,
-    analytics,
+    audit,
     users,
     locations,
     companies,
@@ -132,8 +329,12 @@ function showSection(sectionName, element) {
     if (activeSectionElement) {
       activeSectionElement.style.display = "block";
     }
-    if (activeSection.loadFn) activeSection.loadFn();
+    if (activeSection.loadFn) {
+      await activeSection.loadFn(); // wait for the load function to finish
+    }
   }
+
+  await checkUserPermissions();
 
   // Unhighlight non-active nav item
   document.querySelectorAll(".nav-item").forEach((item) => {
@@ -161,6 +362,9 @@ function closeModal(modalName) {
   if (selectedModal) {
     selectedModal.style.display = "none";
     selectedForm.reset();
+  }
+  if (modalName === "user") {
+    document.getElementById("invitation-link").textContent = "";
   }
 }
 
@@ -215,19 +419,26 @@ function showProductModal(product = null) {
 
 const addProduct = async (formData) => {
   try {
-    const response = await fetch("/inventra/products", {
+    const response = await fetch("/inventra/products/", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
-    const data = await response.json();
-    if (data.success) {
-      closeModal("product");
-      showNotification(data.message, "success");
-      loadMyProducts(); // reload the table
-    } else {
-      showNotification(data.message, "error");
+
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+
+    closeModal("product");
+    showNotification(data.message, "success");
+    loadProducts(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -236,19 +447,20 @@ const addProduct = async (formData) => {
 
 const updateProduct = async (id, formData) => {
   try {
-    const response = await fetch(`/inventra/product/update/${id}`, {
+    const response = await fetch(`/inventra/products/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    if (response.ok) {
-      closeModal("product");
-      showNotification("Product updated successfully!", "success");
-      loadMyProducts(); // reload the table
-    } else {
-      showNotification("Failed to update product", "error");
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
     }
+    closeModal("product");
+    showNotification(data.message, "success");
+    loadProducts(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -264,13 +476,12 @@ document
     const name = document.getElementById("product-name").value;
     const price = document.getElementById("product-price").value;
     const description = document.getElementById("product-description").value;
-    // const companyID = 123;
 
     const formData = new URLSearchParams();
     formData.append("name", name);
     formData.append("price", price);
     formData.append("description", description);
-    // formData.append("company_id", companyID);
+    formData.append("action", productId ? "update" : "add");
 
     if (productId) {
       await updateProduct(productId, formData);
@@ -285,17 +496,17 @@ const deleteProduct = async (productId, element, section) => {
     return;
   }
   try {
-    const response = await fetch(`/inventra/product/delete/${productId}`, {
-      method: "POST",
+    const response = await fetch(`/inventra/products/${productId}`, {
+      method: "DELETE",
     });
 
-    const msg = await response.text();
-
-    if (!response.ok) {
-      throw new Error(msg);
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
     }
 
-    showNotification(msg, "success");
+    showNotification(data.message, "success");
     deleteRowAnimation(element);
   } catch (error) {
     console.error("Error:", error.message);
@@ -314,25 +525,22 @@ function showInventoryModal(product, inventory) {
   // if product is passed instead of inventory, prefill everything except quantity
   if (!inventory) {
     document.getElementById("inv-product-id").value = product.productId || "";
-    document.getElementById("inv-product-location-id").value = "";
     document.getElementById("inv-product-sku").value = product.sku || "";
     document.getElementById("inv-product-name").value = product.name || "";
     document.getElementById("inv-product-price").value = product.price || "";
     document.getElementById("inv-product-qty").value = "";
-    document.getElementById("inv-mode").value = "add"; // flag for add
+    document.getElementById("inv-action").value = "add"; // flag for add
     document.getElementById("inventory-modal-title").textContent =
       "Add to Product Inventory";
     document.getElementById("inv-modal-btn").textContent = "Add";
   } else {
     // if inventory is passed instead of product, pre-fill everything
     document.getElementById("inv-product-id").value = inventory.productId || "";
-    document.getElementById("inv-product-location-id").value =
-      inventory.locationId || "";
     document.getElementById("inv-product-sku").value = inventory.sku || "";
     document.getElementById("inv-product-name").value = inventory.name || "";
     document.getElementById("inv-product-price").value = inventory.price || "";
     document.getElementById("inv-product-qty").value = inventory.quantity;
-    document.getElementById("inv-mode").value = "update"; // flag for update
+    document.getElementById("inv-action").value = "update"; // flag for update
     document.getElementById("inventory-modal-title").textContent =
       "Update Product in Inventory";
     document.getElementById("inv-modal-btn").textContent = "Update";
@@ -346,14 +554,20 @@ const addInventory = async (formData) => {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
-    const data = await response.json();
-    if (data.success) {
-      closeModal("inventory");
-      showNotification(data.message, "success");
-      loadInventory(); // reload the table
-    } else {
-      showNotification(data.message, "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+
+    closeModal("inventory");
+    showNotification(data.message, "success");
+    loadInventory(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -362,20 +576,29 @@ const addInventory = async (formData) => {
 
 const updateInventory = async (formData) => {
   try {
-    const response = await fetch(`/inventra/inventory/update/`, {
+    const response = await fetch(`/inventra/inventory/`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    const data = await response.json();
-    if (data.success) {
-      closeModal("inventory");
-      showNotification(data.message, "success");
-      loadInventory(); // reload the table
-    } else {
-      showNotification(data.message, "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+
+    const data = await response.json();
+    // if error
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+
+    // if success
+    closeModal("inventory");
+    showNotification(data.message, "success");
+    loadInventory(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -387,17 +610,16 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault(); // prevent full page reload
 
-    const locationId = document.getElementById("inv-product-location-id").value;
     const productId = document.getElementById("inv-product-id").value;
     const quantity = document.getElementById("inv-product-qty").value;
-    const mode = document.getElementById("inv-mode").value;
+    const action = document.getElementById("inv-action").value;
 
     const formData = new URLSearchParams();
     formData.append("productId", productId);
-    formData.append("locationId", locationId);
     formData.append("quantity", quantity);
+    formData.append("action", action);
 
-    if (mode === "update") {
+    if (action === "update") {
       await updateInventory(formData);
     } else {
       await addInventory(formData);
@@ -409,23 +631,23 @@ const deleteInventory = async (productId, locationId, element, section) => {
   if (!userConfirmed) {
     return;
   }
-  const formData = new URLSearchParams();
-  formData.append("productId", productId);
-  formData.append("locationId", locationId);
+
   try {
-    const response = await fetch(`/inventra/inventory/delete/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData.toString(),
-    });
+    const response = await fetch(
+      `/inventra/inventory/${locationId}/${productId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     const data = await response.json();
-    if (data.success) {
-      showNotification(data.message, "success");
-      deleteRowAnimation(element);
-    } else {
+    if (!data.success) {
       showNotification(data.message, "error");
+      return;
     }
+
+    showNotification(data.message, "success");
+    deleteRowAnimation(element);
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -469,13 +691,23 @@ const addLocation = async (formData) => {
       body: formData.toString(),
     });
 
-    if (response.ok) {
-      closeModal("location");
-      showNotification("Location added successfully!", "success");
-      loadLocations(); // reload the table
-    } else {
-      showNotification("Failed to add LOCATION", "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+
+    const data = await response.json();
+    // if error
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+
+    // if success
+    closeModal("location");
+    showNotification(data.message, "success");
+    loadLocations(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -484,19 +716,26 @@ const addLocation = async (formData) => {
 
 const updateLocation = async (id, formData) => {
   try {
-    const response = await fetch(`/inventra/location/update/${id}`, {
+    const response = await fetch(`/inventra/locations/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    if (response.ok) {
-      closeModal("location");
-      showNotification("Location updated successfully!", "success");
-      loadLocations(); // reload the table
-    } else {
-      showNotification("Failed to update Location", "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+    const data = await response.json();
+    // if error
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+    closeModal("location");
+    showNotification(data.message, "success");
+    loadLocations(); // reload the table
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -517,6 +756,7 @@ document
     formData.append("name", name);
     formData.append("address_1", address1);
     formData.append("address_2", address2);
+    formData.append("action", locationId ? "update" : "add");
 
     if (locationId) {
       await updateLocation(locationId, formData);
@@ -531,17 +771,17 @@ const deleteLocation = async (locationId, element, section) => {
     return;
   }
   try {
-    const response = await fetch(`/inventra/location/delete/${locationId}`, {
-      method: "POST",
+    const response = await fetch(`/inventra/locations/${locationId}`, {
+      method: "DELETE",
     });
 
-    const msg = await response.text();
-
-    if (!response.ok) {
-      throw new Error(msg);
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
     }
 
-    showNotification(msg, "success");
+    showNotification(data.message, "success");
     deleteRowAnimation(element);
   } catch (error) {
     console.error("Error:", error.message);
@@ -574,19 +814,28 @@ function showCompanyModal(company = null) {
 
 const addCompany = async (formData) => {
   try {
-    const response = await fetch("/inventra/companies", {
+    const response = await fetch("/inventra/companies/", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    if (response.ok) {
-      closeModal("company");
-      showNotification("Company added successfully!", "success");
-      loadCompanies();
-    } else {
-      showNotification("Failed to add COMPANY", "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+
+    const data = await response.json();
+    // if error
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+    // if success
+    closeModal("company");
+    showNotification(data.message, "success");
+    loadCompanies();
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -595,19 +844,26 @@ const addCompany = async (formData) => {
 
 const updateCompany = async (id, formData) => {
   try {
-    const response = await fetch(`/inventra/company/update/${id}`, {
+    const response = await fetch(`/inventra/companies/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
-
-    if (response.ok) {
-      closeModal("company");
-      showNotification("Company updated successfully!", "success");
-      loadCompanies();
-    } else {
-      showNotification("Failed to update company", "error");
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
     }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+    closeModal("company");
+    showNotification("Company updated successfully!", "success");
+    loadCompanies();
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
@@ -624,6 +880,7 @@ document
 
     const formData = new URLSearchParams();
     formData.append("name", name);
+    formData.append("action", companyId ? "update" : "add");
 
     if (companyId) {
       await updateCompany(companyId, formData);
@@ -638,17 +895,18 @@ const deleteCompany = async (companyId, element, section) => {
     return;
   }
   try {
-    const response = await fetch(`/inventra/company/delete/${companyId}`, {
-      method: "POST",
+    const response = await fetch(`/inventra/companies/${companyId}`, {
+      method: "DELETE",
     });
 
-    const msg = await response.text();
+    const msg = await response.json();
 
-    if (!response.ok) {
-      throw new Error(msg);
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
     }
 
-    showNotification(msg, "success");
+    showNotification(data.message, "success");
     deleteRowAnimation(element);
   } catch (error) {
     console.error("Error:", error.message);
@@ -656,51 +914,155 @@ const deleteCompany = async (companyId, element, section) => {
   }
 };
 
-function showUserModal(user = null) {
+const loadLocationDropdown = async (isEdit = false) => {
+  const dropdown = isEdit
+    ? document.getElementById("edit-user-location")
+    : document.getElementById("add-user-location");
+  try {
+    const response = await fetch("/inventra/location-dropdown");
+
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const locations = await response.json();
+
+    // Prevent duplicate options if modal is opened multiple times
+    dropdown.innerHTML = "";
+
+    // populate dropdown
+    locations.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.locationId;
+      option.textContent = location.name;
+      dropdown.appendChild(option);
+    });
+
+    // async returns a promise
+    return dropdown;
+  } catch (error) {
+    console.error("Error:", error.message);
+    showNotification("Network error", "error");
+  }
+};
+
+const showUserModal = async () => {
+  await loadLocationDropdown();
   const userModal = document.getElementById("user-modal");
   const form = document.getElementById("user-form");
+
+  if (!userModal || !form) {
+    return;
+  }
+
+  userModal.style.display = "block";
+};
+
+async function showEditUserModal(user) {
+  // waits for the dropdown to be populated before modyfying
+  const dropdown = await loadLocationDropdown(true);
+  const userModal = document.getElementById("edit-user-modal");
+  const form = document.getElementById("edit-user-form");
+
   if (!userModal || !form) {
     return;
   }
   userModal.style.display = "block";
+
+  if (user) {
+    document.getElementById("edit-user-lastname").value = user.lastName;
+    document.getElementById("edit-user-firstname").value = user.firstName;
+    document.getElementById("edit-user-id").value = user.userId;
+    document.getElementById("edit-user-email").value = user.email;
+    dropdown.value = user.locationId;
+    document.getElementById("cmpy-view-audit").checked = user.compViewAudit > 0; // 1 = true, 0 = false
+    document.getElementById("cmpy-add-rmv-user").checked =
+      user.compAddRemoveUser > 0;
+    document.getElementById("cmpy-perm-manager").checked =
+      user.compManageUserCompanyPerm > 0;
+    document.getElementById("cmpy-edit-name").checked = user.compChangeName > 0;
+    document.getElementById("cmpy-add-rmv-products").checked =
+      user.compAddRemoveProduct > 0;
+    document.getElementById("cmpy-edit-products").checked =
+      user.compEditProduct > 0;
+    document.getElementById("loc-view-audit").checked = user.locViewAudit > 0;
+    document.getElementById("loc-add-user").checked = user.locAddUser > 0;
+    document.getElementById("loc-rmv-user").checked = user.locRemoveUser > 0;
+    document.getElementById("loc-perm-manager").checked =
+      user.locManageUserLocationPerm > 0;
+    document.getElementById("loc-edit-name").checked = user.locChangeName > 0;
+    document.getElementById("loc-edit-addresses").checked =
+      user.locChangeAddress > 0;
+    document.getElementById("loc-view-stock").checked = user.locViewStock > 0;
+    document.getElementById("loc-edit-stock").checked = user.locManageStock > 0;
+  }
 }
 
 const deleteUser = async (userId, element, section) => {
-  userConfirmed = confirmDelete(element, section);
+  const userConfirmed = confirmDelete(element, section);
   if (!userConfirmed) {
     return;
   }
   try {
-    const response = await fetch(`/inventra/user/delete/${userId}`, {
-      method: "POST",
+    const response = await fetch(`/inventra/users/${userId}`, {
+      method: "DELETE",
     });
 
-    const msg = await response.text();
-
-    if (!response.ok) {
-      throw new Error(msg);
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
     }
 
-    showNotification(msg, "success");
+    showNotification(data.message, "success");
     deleteRowAnimation(element);
   } catch (error) {
     console.error("Error:", error.message);
     showNotification("Network error", "error");
   }
 };
-// const locations = ["New York", "London", "Tokyo"];
-// const select = document.getElementById("user-location");
-
-// locations.forEach(loc => {
-//   const option = document.createElement("option");
-//   option.value = loc;
-//   option.textContent = loc;
-//   select.appendChild(option);
-// });
 
 const addUser = async (formData) => {
   try {
-    const response = await fetch("/inventra/users", {
+    const response = await fetch("/inventra/users/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+    });
+
+    // if not logged in, redirect
+    if (response.status == 401) {
+      window.location.href = "/inventra/index";
+      return;
+    }
+
+    const data = await response.json();
+
+    const inviteLink = document.getElementById("invitation-link");
+    // if error
+    if (!data.success) {
+      showNotification(data.message, "error");
+      inviteLink.textContent = "";
+      return;
+    }
+    // if success - show invite link
+    inviteLink.textContent = data.link;
+    showNotification(data.message, "success");
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    showNotification("Network error", "error");
+  }
+};
+
+const updateUser = async (id, formData) => {
+  try {
+    const response = await fetch(`/inventra/users/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
@@ -708,31 +1070,156 @@ const addUser = async (formData) => {
 
     const data = await response.json();
 
-    const inviteLink = document.getElementById("invitation-link");
-    if (data.success) {
-      inviteLink.textContent = data.link;
-      showNotification(data.message, "success");
-    } else {
+    // if error
+    if (!data.success) {
       showNotification(data.message, "error");
-      inviteLink.textContent = "";
+      return;
     }
+    // if success
+    closeModal("edit-user");
+    showNotification(data.message, "success");
+    await loadUsers();
+    await checkUserPermissions(); //recheck permissions
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
   }
-
-  setTimeout(() => {
-    closeModal("user");
-  }, 5000);
 };
 
 document.getElementById("user-form").addEventListener("submit", async (e) => {
   e.preventDefault(); // prevent full page reload
 
   const email = document.getElementById("user-email").value;
+  const locationId = document.getElementById("add-user-location").value;
 
   const formData = new URLSearchParams();
   formData.append("email", email);
+  formData.append("locationId", locationId);
+  formData.append("action", "add");
 
   await addUser(formData);
 });
+
+document
+  .getElementById("edit-user-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault(); // prevent full page reload
+
+    const userId = document.getElementById("edit-user-id").value;
+    const lastName = document.getElementById("edit-user-lastname").value;
+    const firstName = document.getElementById("edit-user-firstname").value;
+    const email = document.getElementById("edit-user-email").value;
+    const locationId = document.getElementById("edit-user-location").value;
+    const hierarchy = document.getElementById("edit-user-hierarchy").value;
+    const compViewAudit = document.getElementById("cmpy-view-audit").checked
+      ? 1
+      : 0;
+    const compAddRemoveUser = document.getElementById("cmpy-add-rmv-user")
+      .checked
+      ? 1
+      : 0;
+    const compManageUserCompanyPerm = document.getElementById(
+      "cmpy-perm-manager"
+    ).checked
+      ? 1
+      : 0;
+    const compChangeName = document.getElementById("cmpy-edit-name").checked
+      ? 1
+      : 0;
+    const compAddRemoveProduct = document.getElementById(
+      "cmpy-add-rmv-products"
+    ).checked
+      ? 1
+      : 0;
+    const compEditProduct = document.getElementById("cmpy-edit-products")
+      .checked
+      ? 1
+      : 0;
+    const locViewAudit = document.getElementById("loc-view-audit").checked
+      ? 1
+      : 0;
+    const locAddUser = document.getElementById("loc-add-user").checked ? 1 : 0;
+    const locRemoveUser = document.getElementById("loc-rmv-user").checked
+      ? 1
+      : 0;
+    const locManageUserLocationPerm = document.getElementById(
+      "loc-perm-manager"
+    ).checked
+      ? 1
+      : 0;
+    const locChangeName = document.getElementById("loc-edit-name").checked
+      ? 1
+      : 0;
+    const locChangeAddress = document.getElementById("loc-edit-addresses")
+      .checked
+      ? 1
+      : 0;
+    const locViewStock = document.getElementById("loc-view-stock").checked
+      ? 1
+      : 0;
+    const locManageStock = document.getElementById("loc-edit-stock").checked
+      ? 1
+      : 0;
+
+    const formData = new URLSearchParams();
+    formData.append("lastName", lastName);
+    formData.append("firstName", firstName);
+    formData.append("email", email);
+    formData.append("locationId", locationId);
+    formData.append("hierarchy", hierarchy);
+    formData.append("compViewAudit", compViewAudit);
+    formData.append("compAddRemoveUser", compAddRemoveUser);
+    formData.append("compManageUserCompanyPerm", compManageUserCompanyPerm);
+    formData.append("compChangeName", compChangeName);
+    formData.append("compAddRemoveProduct", compAddRemoveProduct);
+    formData.append("compEditProduct", compEditProduct);
+    formData.append("locViewAudit", locViewAudit);
+    formData.append("locAddUser", locAddUser);
+    formData.append("locRemoveUser", locRemoveUser);
+    formData.append("locManageUserLocationPerm", locManageUserLocationPerm);
+    formData.append("locChangeName", locChangeName);
+    formData.append("locChangeAddress", locChangeAddress);
+    formData.append("locViewStock", locViewStock);
+    formData.append("locManageStock", locManageStock);
+    formData.append("action", "update");
+
+    await updateUser(userId, formData);
+  });
+
+const updateUserProfile = async (formData) => {
+  try {
+    const response = await fetch(`/inventra/user/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+    });
+    if (response.status === 401) {
+      window.location.href = "/inventra/index";
+      return;
+    }
+    const data = await response.json();
+    if (!data.success) {
+      showNotification(data.message, "error");
+      return;
+    }
+    showNotification(data.message, "success");
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    showNotification("Network error", "error");
+  }
+};
+
+document
+  .getElementById("my-account-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault(); // prevent full page reload
+
+    const lastName = document.getElementById("myuser-lastname").value;
+    const firstName = document.getElementById("myuser-firstname").value;
+
+    const formData = new URLSearchParams();
+    formData.append("lastName", lastName);
+    formData.append("firstName", firstName);
+
+    await updateUserProfile(formData);
+  });

@@ -35,7 +35,7 @@ public class CompanyPermissionBuilder {
     }
 
     public CompanyPermissionBuilder withManageUserCompanyPerm(int manageUserCompanyPerm) {
-        companyPermission.setAddRemoveUser(manageUserCompanyPerm);
+        companyPermission.setManageUserCompanyPerm(manageUserCompanyPerm);
         return this;
     }
 

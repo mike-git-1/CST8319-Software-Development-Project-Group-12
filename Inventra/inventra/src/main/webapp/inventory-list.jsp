@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %> <%@ taglib
-uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+uri="http://java.sun.com/jsp/jstl/core" prefix="c" %> <%@ taglib
+uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <c:if test="${empty inventories}">
   <tr>
@@ -10,9 +11,17 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
   <tr>
     <td><c:out value="${inventory.sku}" /></td>
     <td><c:out value="${inventory.name}" /></td>
-    <td><c:out value="${inventory.price}" /></td>
+    <td><c:out value="${inventory.location}" /></td>
+    <td>
+      <fmt:formatNumber
+        value="${inventory.price}"
+        type="currency"
+        currencySymbol="$"
+        minFractionDigits="2"
+        maxFractionDigits="2"
+      />
+    </td>
     <td><c:out value="${inventory.quantity}" /></td>
-    <td>WIP</td>
     <td>
       <span class="status-badge ${inventory.quantity > 0 ? 'active' : 'danger'}"
         >${inventory.quantity > 0 ? 'IN STOCK' : '&#9888; OUT OF STOCK'}</span
@@ -20,10 +29,9 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
     </td>
     <td>
       <button
-        class="action-btn edit"
+        class="action-btn edit edit-inventory-btn"
         onclick="showInventoryModal(null,{
           productId: '${inventory.productId}',
-          locationId: '${inventory.locationId}',
           sku: '${inventory.sku}',
           name: '${inventory.name}',
           price: '${inventory.price}',
@@ -33,7 +41,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         Edit
       </button>
       <button
-        class="action-btn delete"
+        class="action-btn delete delete-inventory-btn"
         onclick="deleteInventory(`${inventory.productId}`,`${inventory.locationId}`,this,'inventory')"
       >
         Delete

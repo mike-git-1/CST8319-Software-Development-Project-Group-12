@@ -73,6 +73,14 @@ public class DBConnection {
                     "PRIMARY KEY (`company_id`), " +
                     "FOREIGN KEY (`admin_id`) REFERENCES users(user_id));");
 
+            // Create 'employees' table
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `employees` (" +
+                    "`user_id` INT(11) NOT NULL, " +
+                    "`company_id` INT(11) NOT NULL, " +
+                    "PRIMARY KEY (`user_id`, `company_id`), " +
+                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`), " +
+                    "FOREIGN KEY (`company_id`) REFERENCES `companies`(`company_id`));");
+
             // Create 'locations' table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `locations` (" +
                     "`location_id` INT(11) NOT NULL AUTO_INCREMENT, " +
@@ -94,7 +102,7 @@ public class DBConnection {
                     "`change_name` TINYINT(1) NOT NULL DEFAULT '0', " +
                     "`add/remove_product` TINYINT(1) NOT NULL DEFAULT '0', " +
                     "`edit_product` TINYINT(1) NOT NULL DEFAULT '0', " +
-                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`), " +
+                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE, " +
                     "FOREIGN KEY (`company_id`) REFERENCES `companies`(`company_id`));");
 
             // Create 'location_permissions' table
@@ -111,7 +119,7 @@ public class DBConnection {
                     "`change_address` TINYINT(1) NOT NULL DEFAULT '0', " +
                     "`view_stock` TINYINT(1) NOT NULL DEFAULT '0', " +
                     "`manage_stock` TINYINT(1) NOT NULL DEFAULT '0', " +
-                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`), " +
+                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE, " +
                     "FOREIGN KEY (`location_id`) REFERENCES `locations`(`location_id`), " +
                     "FOREIGN KEY (`company_id`) REFERENCES `companies`(`company_id`));");
 
@@ -133,6 +141,23 @@ public class DBConnection {
                     "`amount` INT(11) NOT NULL, " +
                     "FOREIGN KEY (`location_id`) REFERENCES `locations`(`location_id`), " +
                     "FOREIGN KEY (`product_id`) REFERENCES `products`(`product_id`));");
+
+            // Create 'audit' table
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `audit` (" +
+                    "`audit_id` INT(11) NOT NULL AUTO_INCREMENT, " +
+                    "`company_id` INT(11) NOT NULL, " +
+                    "`location_id` int(11), " +
+                    "`user_id` INT(11) NOT NULL, " +
+                    "`change_type` ENUM('ADDED','REMOVED','MODIFIED') NOT NULL, " +
+                    "`change_target` ENUM('USER','COMPANY','PERMISSION','PRODUCT','LOCATION','INVENTORY') NOT NULL, " +
+                    "`change_target_id` INT(11) NOT NULL, " +
+                    "`change_column` VARCHAR(100) NOT NULL, " +
+                    "`previous_value` VARCHAR(200) NOT NULL, " +
+                    "`new_value` VARCHAR(200) NOT NULL, " +
+                    "`datetime` DATETIME NOT NULL, " +
+                    "PRIMARY KEY (`audit_id`), " +
+                    "FOREIGN KEY (`company_id`) REFERENCES `companies`(`company_id`), " +
+                    "FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`));");
 
             // Insert Admin Account to sign into for testing
             statement.executeUpdate(

@@ -20,7 +20,7 @@ public class AuthServlet extends HttpServlet {
         String token = request.getParameter("token");
 
         if (token == null) {
-            response.sendRedirect("index");
+            response.sendRedirect(request.getContextPath() + "/index");
             return;
         }
 
@@ -32,7 +32,7 @@ public class AuthServlet extends HttpServlet {
                 request.getRequestDispatcher("signup.jsp").forward(request, response);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.sendRedirect("index");
+                response.sendRedirect(request.getContextPath() + "/index");
             }
         } catch (Exception e) {
             e.printStackTrace();
