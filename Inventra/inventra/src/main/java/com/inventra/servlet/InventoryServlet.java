@@ -9,6 +9,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import com.inventra.model.beans.Inventory;
+import com.inventra.model.beans.LocationPermission;
 import com.inventra.model.builders.InventoryBuilder;
 import com.inventra.service.AuditService;
 import com.inventra.service.SessionUtils;
@@ -36,7 +37,16 @@ public class InventoryServlet extends HttpServlet {
         int userId = (Integer) session.getAttribute("userId");
 
         try {
-            int locationId = locationPermissionDao.getLocationIdByUserId(userId);
+            LocationPermission locationPermission = locationPermissionDao.getLocationPermissionsByUserId(userId);
+            // Permission check FIRST
+            if (locationPermission.getViewStock() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to view this page.\"}");
+                return;
+            }
+
+            int locationId = locationPermission.getLocationId();
             request.setAttribute("inventories", inventoryDAO.getProductInventoryDTOByLocation(locationId));
             request.getRequestDispatcher("/inventory-list.jsp").forward(request, response);
         } catch (SQLException e) {
@@ -79,6 +89,15 @@ public class InventoryServlet extends HttpServlet {
         try {
             int userId = (Integer) session.getAttribute("userId");
             int companyId = (Integer) session.getAttribute("companyId");
+
+            LocationPermission locationPermission = locationPermissionDao.getLocationPermissionsByUserId(userId);
+            // Permission check FIRST
+            if (locationPermission.getManageStock() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to add products to inventory.\"}");
+                return;
+            }
             int productId = Integer.parseInt(request.getParameter("productId"));
             int quantity = Integer.parseInt(request.getParameter("quantity"));
 
@@ -136,8 +155,17 @@ public class InventoryServlet extends HttpServlet {
         try {
             int userId = (Integer) session.getAttribute("userId");
             int companyId = (Integer) session.getAttribute("companyId");
-            int productId = Integer.parseInt(request.getParameter("productId"));
 
+            LocationPermission locationPermission = locationPermissionDao.getLocationPermissionsByUserId(userId);
+            // Permission check FIRST
+            if (locationPermission.getManageStock() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to update products in inventory.\"}");
+                return;
+            }
+
+            int productId = Integer.parseInt(request.getParameter("productId"));
             int quantity = Integer.parseInt(request.getParameter("quantity"));
 
             int locationId = locationPermissionDao.getLocationIdByUserId(userId);
@@ -210,6 +238,15 @@ public class InventoryServlet extends HttpServlet {
 
             int userId = (Integer) session.getAttribute("userId");
             int companyId = (Integer) session.getAttribute("companyId");
+
+            LocationPermission locationPermission = locationPermissionDao.getLocationPermissionsByUserId(userId);
+            // Permission check FIRST
+            if (locationPermission.getManageStock() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to delete products in inventory.\"}");
+                return;
+            }
 
             Inventory existingInventory = inventoryDAO.getInventoryByLocationAndProduct(locationId, productId);
 

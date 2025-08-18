@@ -19,6 +19,7 @@ import com.inventra.model.builders.LocationPermissionBuilder;
 import com.inventra.model.builders.UserBuilder;
 import com.inventra.service.AuditService;
 import com.inventra.service.SessionUtils;
+import com.inventra.util.EmailUtil;
 
 @WebServlet(urlPatterns = { "/users/*" })
 public class UserServlet extends HttpServlet {
@@ -190,6 +191,11 @@ public class UserServlet extends HttpServlet {
                         "{\"success\": false, \"message\": \"An error occurred. Could not find user.\"}");
                 return;
             }
+
+            EmailUtil.sendEmail("tran0496@algonquinlive.com", "Activate your Inventra account",
+                    String.format(
+                            "Hello %s,\n\nYou have been invited to join Inventra, our inventory management platform.\nTo get started, click the link below to activate your account and set your password:\n\nhttp://localhost:8080/inventra/auth?token=%s \n\nIf you did not request an account, you can safely ignore this email.\n\nBest regards,\nInventra Team",
+                            email, token));
 
             auditService.logNewUser(adminId, companyId, adminLocationPermission.getLocationId(), newUserId,
                     newUser);

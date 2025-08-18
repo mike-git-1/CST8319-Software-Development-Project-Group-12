@@ -1,12 +1,14 @@
 package com.inventra.servlet;
 
 import com.inventra.database.dao.AuditDAO;
+import com.inventra.database.dao.CompanyPermissionsDAO;
 import com.inventra.database.dao.LocationPermissionsDAO;
 import com.inventra.database.dao.ProductDAO;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
+import com.inventra.model.beans.CompanyPermission;
 import com.inventra.model.beans.Product;
 import com.inventra.model.builders.ProductBuilder;
 import com.inventra.service.AuditService;
@@ -19,6 +21,7 @@ import java.sql.SQLException;
 public class ProductServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final LocationPermissionsDAO locationPermissionDao = new LocationPermissionsDAO();
+    private final CompanyPermissionsDAO companyPermissionDao = new CompanyPermissionsDAO();
     private final AuditService auditService = new AuditService(new AuditDAO());
 
     @Override
@@ -76,6 +79,14 @@ public class ProductServlet extends HttpServlet {
             int companyId = (Integer) session.getAttribute("companyId");
             int userId = (Integer) session.getAttribute("userId");
 
+            CompanyPermission companyPermission = companyPermissionDao.getCompanyPermissionByUserId(userId);
+            // Permission check FIRST
+            if (companyPermission.getAddRemoveProduct() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to add products.\"}");
+                return;
+            }
             String name = request.getParameter("name");
             String description = request.getParameter("description");
             double price = Double.parseDouble(request.getParameter("price"));
@@ -141,6 +152,15 @@ public class ProductServlet extends HttpServlet {
 
             int companyId = (Integer) session.getAttribute("companyId");
             int userId = (Integer) session.getAttribute("userId");
+
+            CompanyPermission companyPermission = companyPermissionDao.getCompanyPermissionByUserId(userId);
+            // Permission check FIRST
+            if (companyPermission.getEditProduct() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to update products.\"}");
+                return;
+            }
 
             int locationId = locationPermissionDao.getLocationIdByUserId(userId);
             if (locationId < 0) {
@@ -228,6 +248,15 @@ public class ProductServlet extends HttpServlet {
         try {
             int companyId = (Integer) session.getAttribute("companyId");
             int userId = (Integer) session.getAttribute("userId");
+
+            CompanyPermission companyPermission = companyPermissionDao.getCompanyPermissionByUserId(userId);
+            // Permission check FIRST
+            if (companyPermission.getAddRemoveProduct() <= 0) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter()
+                        .write("{\"success\": false, \"message\": \"You do not have permission to delete products.\"}");
+                return;
+            }
 
             int locationId = locationPermissionDao.getLocationIdByUserId(userId);
             if (locationId < 0) {

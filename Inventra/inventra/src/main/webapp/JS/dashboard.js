@@ -1090,6 +1090,7 @@ const addUser = async (formData) => {
     // if success - show invite link
     inviteLink.textContent = data.link;
     showNotification(data.message, "success");
+    await loadUsers();
   } catch (error) {
     console.error("Fetch Error:", error);
     showNotification("Network error", "error");
